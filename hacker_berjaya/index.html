@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#ff3b30">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedScan — Drug Identifier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">✚</div>
+    Med<span>Scan</span>
+  </div>
+  <div class="badge">AI Drug Identifier</div>
+</header>
+
+<main>
+  <div class="scanner-panel">
+    <div class="section-label">Camera / Image</div>
+
+    <div class="camera-frame" id="cameraFrame">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="snapshot"></canvas>
+      <div class="camera-placeholder" id="camPlaceholder">
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="16" width="44" height="34" rx="6" stroke="#7aad8f" stroke-width="2"/>
+          <circle cx="30" cy="32" r="9" stroke="#7aad8f" stroke-width="2"/>
+          <circle cx="30" cy="32" r="4" fill="#7aad8f" opacity="0.4"/>
+          <path d="M20 16V13C20 11.9 20.9 11 22 11H26" stroke="#7aad8f" stroke-width="2" stroke-linecap="round"/>
+          <path d="M40 16V13C40 11.9 39.1 11 38 11H34" stroke="#7aad8f" stroke-width="2" stroke-linecap="round"/>
+          <rect x="38" y="20" width="8" height="5" rx="1" fill="#7aad8f" opacity="0.5"/>
+        </svg>
+        <p>Point your camera at a medication tag</p>
+       </div> 
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+      <div class="scan-line" id="scanLine"></div>
+      </div>
+    
+
+    <div class="status-bar">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText"> No camera detected.Tap Start Camera</span>
+    </div>
+
+    <div class="cam-select-row">
+      <select id="camSelect">
+        <option value="">Select Camera</option>
+      </select>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="btnStart" onclick="startCamera()">▶ Start Camera</button>
+      <button class="btn" id="btnStop" onclick="stopCamera()" disabled>■ Stop</button>
+      <button class="btn primary" id="btnScan" onclick="doScan()" disabled>Scan Drug</button>
+      <label class="upload-area" for="fileInput">
+        ↑ Or upload a photo of medication
+      </label>
+      <input type="file" id="fileInput" accept="image/*" onchange="handleUpload(event)">
+    </div>
+
+    <div class="utility-card-grid">
+      <div class="control-card accessibility-card">
+        <div class="card-heading">ACCESSIBILITY</div>
+        <button class="btn large-text-btn" onclick="toggleLargeText()">Aa Large Text</button>
+      </div>
+      
+      <div class="control-card emergency-card">
+        <div class="card-heading danger-heading">EMERGENCY SOS</div>
+        <button class="sos-button" onclick="sendSOS('Healthcare Assistant')">SOS Healthcare Assistant</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-panel" id="resultPanel">
+    <div class="section-label">Analysis Result</div> 
+
+    <div class="result-placeholder" id="resultPlaceholder">
+      <p>Scan or upload a image of medicine to know more information</p>
+    </div>
+
+    <div class="loading-card" id="loadingCard">
+      <div class="skeleton" style="height:32px; width:60%;"></div>
+      <div class="skeleton" style="height:16px; width:40%;"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <div class="skeleton" style="height:60px;"></div>
+        <div class="skeleton" style="height:60px;"></div>
+        <div class="skeleton" style="height:60px;"></div>
+        <div class="skeleton" style="height:60px;"></div>
+      </div>
+      <div class="skeleton" style="height:60px;"></div>
+      <div class="skeleton" style="height:60px;"></div>
+    </div>
+
+    <div class="drug-card" id="drugCard">
+      <div class="drug-header">
+        <div>
+          <div class="drug-name" id="drugName">—</div>
+          <div class="drug-generic" id="drugGeneric">—</div>
+        </div>
+      </div>
+    <!-- Recent Scans History Box -->
+    <div id="historyCard" style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; display: none;">
+    <h3 style="margin-top: 0;">Recent Scans</h3>
+    <ul id="historyList" style="padding-left: 20px; line-height: 1.5;"></ul>
+    <button onclick="clearHistory()" style="margin-top: 10px; padding: 5px 10px;">Clear History</button>
+    </div>
+      <div class="info-grid">
+        <div class="info-chip"><div class="label">Drug Class</div><div class="value" id="drugClass">—</div></div>
+        <div class="info-chip"><div class="label">Form</div><div class="value" id="drugForm">—</div></div>
+        <div class="info-chip"><div class="label">Dosage</div><div class="value" id="drugDosage">—</div></div>
+        <div class="info-chip"><div class="label">Schedule</div><div class="value" id="drugSchedule">—</div></div>
+      </div>
+
+      <div class="section-block">
+        <h3>What it does</h3>
+        <p id="drugUse">—</p>
+      </div>
+
+      <div class="section-block">
+        <h3>How it works</h3>
+        <p id="drugMechanism">—</p>
+      </div>
+
+      <div class="section-block">
+        <h3>Common side effects</h3>
+        <ul id="drugSideEffects"></ul>
+      </div>
+
+      <div class="warning-block" id="warningBlock">
+        <h3>⚠ Important Warning</h3>
+        <p id="drugWarning">—</p>
+      </div>
+
+      <div class="section-block">
+        <h3>Storage & handling</h3>
+        <p id="drugStorage">—</p>
+      </div>
+
+  </div>
+  <!-- Medical Disclaimer -->
+<div style="background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-top: 15px; text-align: center; font-size: 0.9em; border: 1px solid #ffeeba;">
+  <strong>Disclaimer ! :</strong> This is an AI assistant, not a doctor. Always verify medication with a healthcare professional or pharmacist before taking it.
+</div>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
